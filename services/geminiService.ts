@@ -25,6 +25,10 @@ const analysisSchema = {
       type: Type.INTEGER,
       description: "A score from 1 to 10 on the clarity and compellingness of the Call to Action.",
     },
+    salesKeywordCount: {
+      type: Type.INTEGER,
+      description: "The count of strong sales-related keywords found (e.g., 'discount', 'free', 'limited time', 'guarantee', 'exclusive').",
+    },
     improvements: {
       type: Type.ARRAY,
       description: "A list of 3 to 5 specific, actionable improvements.",
@@ -54,6 +58,7 @@ const analysisSchema = {
     "youUsageCount",
     "painPointClarity",
     "ctaStrength",
+    "salesKeywordCount",
     "improvements",
   ],
 };
@@ -62,6 +67,9 @@ export const analyzeScript = async (scriptText: string): Promise<AnalysisResult>
   if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
   }
+
+  // Calculate word count locally
+  const wordCount = scriptText.trim().length === 0 ? 0 : scriptText.trim().split(/\s+/).length;
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
@@ -72,7 +80,8 @@ export const analyzeScript = async (scriptText: string): Promise<AnalysisResult>
   3.  **"You" Usage Count:** Count the exact number of times the word "you" or "your" appears.
   4.  **Pain Point Clarity:** A score from 1 to 10 on how clearly the script identifies and addresses the customer's pain points.
   5.  **CTA Strength:** A score from 1 to 10 on the clarity and compellingness of the Call to Action.
-  6.  **Improvements:** Provide 3 to 5 specific, actionable improvements. For each improvement, provide a "before" snippet from the original script, a suggested "after" version, and an explanation.
+  6.  **Sales Keyword Count:** Count the occurrences of key sales-related keywords (e.g., 'discount', 'free', 'limited time', 'guarantee', 'exclusive', 'save', 'now').
+  7.  **Improvements:** Provide 3 to 5 specific, actionable improvements. For each improvement, provide a "before" snippet from the original script, a suggested "after" version, and an explanation.
 
   Here is the script:
   ---
@@ -92,7 +101,12 @@ export const analyzeScript = async (scriptText: string): Promise<AnalysisResult>
     });
 
     const jsonText = response.text.trim();
-    return JSON.parse(jsonText) as AnalysisResult;
+    const aiResult = JSON.parse(jsonText);
+
+    return {
+      ...aiResult,
+      wordCount,
+    } as AnalysisResult;
   } catch (error) {
     console.error("Error analyzing script:", error);
     throw new Error("Failed to get analysis from AI. Please check the script or try again later.");

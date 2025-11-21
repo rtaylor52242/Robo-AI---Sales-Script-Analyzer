@@ -1,3 +1,4 @@
+
 export interface Improvement {
   before: string;
   after: string;
@@ -11,6 +12,8 @@ export interface AnalysisResult {
   painPointClarity: number;
   ctaStrength: number;
   improvements: Improvement[];
+  wordCount: number;
+  salesKeywordCount: number;
 }
 
 export interface HistoryItem {
